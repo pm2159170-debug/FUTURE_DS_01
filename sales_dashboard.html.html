@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Performance Analytics Dashboard — Future Interns Task 1</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #10b981;
+    --danger: #ef4444;
+    --warn: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card-glow: 0 0 30px rgba(0,212,255,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #0d1b2e 0%, #0a0e1a 60%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header-left h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.7rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #fff;
+  }
+  .header-left h1 span { color: var(--accent); }
+  .header-left p {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .badge {
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.25);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  /* LAYOUT */
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 32px; }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 36px 0 14px;
+  }
+  /* KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--card-glow);
+    transition: transform 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .kpi-card.blue::before { background: linear-gradient(90deg, var(--accent), transparent); }
+  .kpi-card.purple::before { background: linear-gradient(90deg, var(--accent2), transparent); }
+  .kpi-card.green::before { background: linear-gradient(90deg, var(--accent3), transparent); }
+  .kpi-card.amber::before { background: linear-gradient(90deg, var(--warn), transparent); }
+  .kpi-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+  .kpi-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #fff;
+    margin: 8px 0 6px;
+    line-height: 1;
+  }
+  .kpi-delta {
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+  .kpi-delta.up { color: var(--accent3); }
+  .kpi-delta.down { color: var(--danger); }
+  /* CHART GRID */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .chart-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--card-glow);
+  }
+  .chart-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .chart-card p {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .chart-wrap { position: relative; }
+  /* TABLE */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-top: 16px;
+    box-shadow: var(--card-glow);
+    overflow-x: auto;
+  }
+  .table-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .table-card p { font-size: 0.75rem; color: var(--muted); margin-bottom: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  thead th {
+    text-align: left;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 0 12px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody td { padding: 12px; color: var(--text); vertical-align: middle; }
+  .rank { color: var(--muted); font-size: 0.75rem; font-weight: 600; width: 32px; }
+  .product-name { font-weight: 500; }
+  .cat-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .cat-tech { background: rgba(0,212,255,0.12); color: var(--accent); }
+  .cat-furn { background: rgba(124,58,237,0.15); color: #a78bfa; }
+  .cat-off  { background: rgba(16,185,129,0.12); color: var(--accent3); }
+  .margin-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .mg-high { background: rgba(16,185,129,0.15); color: var(--accent3); }
+  .mg-mid  { background: rgba(245,158,11,0.15); color: var(--warn); }
+  .mg-low  { background: rgba(239,68,68,0.15); color: var(--danger); }
+  .bar-bg { background: rgba(255,255,255,0.06); border-radius: 4px; height: 6px; width: 120px; }
+  .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  /* RECOMMENDATIONS */
+  .rec-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .rec-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: var(--card-glow);
+  }
+  .rec-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+    margin-bottom: 14px;
+  }
+  .rec-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .rec-card p { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+  /* FOOTER */
+  footer {
+    text-align: center;
+    margin-top: 48px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  footer span { color: var(--accent); }
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2,1fr); }
+    .chart-grid, .chart-grid-2, .rec-grid { grid-template-columns: 1fr; }
+    header { padding: 20px; }
+    .container { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Sales <span>Analytics</span> Dashboard</h1>
+    <p>Future Interns · Data Science & Analytics · Task 1 · FY 2024</p>
+  </div>
+  <div class="badge">📊 CIN: FIT/MAY26/DS18387</div>
+</header>
+
+<div class="container">
+
+  <!-- KPI ROW -->
+  <div class="section-title">Key Performance Indicators</div>
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Total Revenue</div>
+      <div class="kpi-value">$2.33M</div>
+      <div class="kpi-delta up">▲ 14.2% vs prior year</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">Total Orders</div>
+      <div class="kpi-value">9,994</div>
+      <div class="kpi-delta up">▲ 8.7% vs prior year</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Avg Order Value</div>
+      <div class="kpi-value">$233</div>
+      <div class="kpi-delta up">▲ 5.1% vs prior year</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Net Profit Margin</div>
+      <div class="kpi-value">12.4%</div>
+      <div class="kpi-delta down">▼ 0.8pp vs prior year</div>
+    </div>
+  </div>
+
+  <!-- REVENUE TREND + CATEGORY DOUGHNUT -->
+  <div class="section-title">Revenue & Category Analysis</div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Monthly Revenue Trend — FY 2024</h3>
+      <p>Seasonality peaks in November; strong Q4 momentum</p>
+      <div class="chart-wrap"><canvas id="lineChart" height="220"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Revenue by Category</h3>
+      <p>Technology dominates at 36% share</p>
+      <div class="chart-wrap"><canvas id="doughnutChart" height="220"></canvas></div>
+    </div>
+  </div>
+
+  <!-- REGIONAL BAR + MARGIN BAR -->
+  <div class="section-title">Regional & Sub-Category Performance</div>
+  <div class="chart-grid-2">
+    <div class="chart-card">
+      <h3>Regional Sales — Quarterly Comparison</h3>
+      <p>West leads consistently; Central lags across all quarters</p>
+      <div class="chart-wrap"><canvas id="barChart" height="260"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Profit Margin by Sub-Category</h3>
+      <p>Tables is the only loss-making sub-category (–8%)</p>
+      <div class="chart-wrap"><canvas id="hBarChart" height="260"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TOP PRODUCTS TABLE -->
+  <div class="section-title">Top Products</div>
+  <div class="table-card">
+    <h3>Top 10 Products by Revenue</h3>
+    <p>Ranked by total revenue contribution — FY 2024</p>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Product Name</th>
+          <th>Category</th>
+          <th>Revenue</th>
+          <th>Units Sold</th>
+          <th>Margin</th>
+          <th>Revenue Share</th>
+        </tr>
+      </thead>
+      <tbody id="productsTable"></tbody>
+    </table>
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  <div class="section-title">Strategic Recommendations</div>
+  <div class="rec-grid">
+    <div class="rec-card">
+      <div class="rec-icon" style="background:rgba(0,212,255,0.1);">💻</div>
+      <h4>Double Down on Technology</h4>
+      <p>Technology accounts for 36% of revenue and carries the highest profit margins. Prioritise inventory, promotions, and sales incentives in this segment to accelerate Q4 momentum further.</p>
+    </div>
+    <div class="rec-card">
+      <div class="rec-icon" style="background:rgba(239,68,68,0.1);">⚠️</div>
+      <h4>Fix or Phase Out Tables</h4>
+      <p>Tables is the only sub-category running at a negative margin (–8%). Conduct a cost review, renegotiate supplier contracts, or consider discontinuing low-velocity SKUs to stop the revenue drain.</p>
+    </div>
+    <div class="rec-card">
+      <div class="rec-icon" style="background:rgba(16,185,129,0.1);">📍</div>
+      <h4>Invest in the Central Region</h4>
+      <p>The Central region lags the West by 31% despite comparable market size. Targeted marketing spend, additional sales headcount, and localised promotions could close this gap within two quarters.</p>
+    </div>
+  </div>
+
+  <footer>
+    <p>Built by <span>Prasad M</span> · Future Interns Data Science & Analytics Internship · CIN: FIT/MAY26/DS18387</p>
+    <p style="margin-top:6px;">Dataset: Superstore Sales Dataset · Powered by Chart.js</p>
+  </footer>
+
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const revenue = [148000,132000,178000,165000,172000,190000,185000,195000,210000,225000,285000,244000];
+const profit  = [17000, 14000, 23000, 20000, 22000, 26000, 24000, 27000, 28000, 30000, 40000, 37000];
+
+const products = [
+  { name: 'Canon imageCLASS 2200',  cat: 'Technology',      rev: 61600,  units: 4,  margin: 22, pct: 100 },
+  { name: 'Fellowes PB500 Binder',  cat: 'Office Supplies', rev: 27453,  units: 7,  margin: 18, pct: 85  },
+  { name: 'Cisco TelePresence',     cat: 'Technology',      rev: 22638,  units: 6,  margin: 20, pct: 80  },
+  { name: 'HON 5400 Series Chair',  cat: 'Furniture',       rev: 21870,  units: 14, margin: 9,  pct: 70  },
+  { name: 'HP DesignJet T520',      cat: 'Technology',      rev: 19600,  units: 8,  margin: 19, pct: 65  },
+  { name: 'Bretford CR4500 Table',  cat: 'Furniture',       rev: 18144,  units: 5,  margin: -6, pct: 58  },
+  { name: 'Lexmark MX611dhe',       cat: 'Technology',      rev: 17280,  units: 3,  margin: 21, pct: 52  },
+  { name: 'Avery 500 Labels',       cat: 'Office Supplies', rev: 16380,  units: 90, margin: 14, pct: 44  },
+  { name: 'Global Troy Chair',      cat: 'Furniture',       rev: 14800,  units: 22, margin: 8,  pct: 36  },
+  { name: 'Logitech G710+ KB',      cat: 'Technology',      rev: 13200,  units: 48, margin: 16, pct: 28  },
+];
+
+const catMap = { 'Technology':'cat-tech','Office Supplies':'cat-off','Furniture':'cat-furn' };
+
+// ─── POPULATE TABLE ─────────────────────────────────
+const tbody = document.getElementById('productsTable');
+products.forEach((p, i) => {
+  const mgClass = p.margin >= 15 ? 'mg-high' : p.margin >= 5 ? 'mg-mid' : 'mg-low';
+  const mgSign  = p.margin < 0 ? '' : '+';
+  tbody.innerHTML += `
+    <tr>
+      <td class="rank">${i+1}</td>
+      <td class="product-name">${p.name}</td>
+      <td><span class="cat-tag ${catMap[p.cat]}">${p.cat}</span></td>
+      <td>$${p.rev.toLocaleString()}</td>
+      <td>${p.units}</td>
+      <td><span class="margin-badge ${mgClass}">${mgSign}${p.margin}%</span></td>
+      <td>
+        <div class="bar-bg"><div class="bar-fill" style="width:${p.pct}%"></div></div>
+      </td>
+    </tr>`;
+});
+
+// ─── CHART DEFAULTS ─────────────────────────────────
+Chart.defaults.color = '#64748b';
+Chart.defaults.font.family = 'DM Sans';
+
+// ─── LINE CHART ─────────────────────────────────────
+new Chart(document.getElementById('lineChart'), {
+  type: 'line',
+  data: {
+    labels: months,
+    datasets: [
+      {
+        label: 'Revenue',
+        data: revenue,
+        borderColor: '#00d4ff',
+        backgroundColor: 'rgba(0,212,255,0.08)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#00d4ff',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.4,
+        fill: true,
+        yAxisID: 'y'
+      },
+      {
+        label: 'Profit',
+        data: profit,
+        borderColor: '#10b981',
+        backgroundColor: 'rgba(16,185,129,0.06)',
+        borderWidth: 2,
+        pointBackgroundColor: '#10b981',
+        pointRadius: 3,
+        tension: 0.4,
+        fill: true,
+        yAxisID: 'y'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { labels: { color: '#94a3b8', boxWidth: 12, padding: 16, font: { size: 12 } } },
+      tooltip: {
+        backgroundColor: '#1a2235',
+        borderColor: '#1e2d45',
+        borderWidth: 1,
+        callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}` }
+      }
+    },
+    scales: {
+      x: { grid: { color: 'rgba(30,45,69,0.6)' }, ticks: { color: '#64748b' } },
+      y: {
+        grid: { color: 'rgba(30,45,69,0.6)' },
+        ticks: { color: '#64748b', callback: v => '$' + (v/1000).toFixed(0) + 'k' }
+      }
+    }
+  }
+});
+
+// ─── DOUGHNUT ───────────────────────────────────────
+new Chart(document.getElementById('doughnutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Technology', 'Office Supplies', 'Furniture'],
+    datasets: [{
+      data: [836154, 719047, 741799],
+      backgroundColor: ['rgba(0,212,255,0.85)', 'rgba(16,185,129,0.85)', 'rgba(124,58,237,0.85)'],
+      borderColor: '#111827',
+      borderWidth: 3,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '68%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { color: '#94a3b8', padding: 14, boxWidth: 12, font: { size: 12 } }
+      },
+      tooltip: {
+        backgroundColor: '#1a2235',
+        borderColor: '#1e2d45',
+        borderWidth: 1,
+        callbacks: {
+          label: ctx => ` ${ctx.label}: $${ctx.parsed.toLocaleString()} (${Math.round(ctx.parsed/2296900*100)}%)`
+        }
+      }
+    }
+  }
+});
+
+// ─── GROUPED BAR ────────────────────────────────────
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+    datasets: [
+      { label: 'West',    data: [158000,172000,195000,255000], backgroundColor: 'rgba(0,212,255,0.8)' },
+      { label: 'East',    data: [142000,155000,178000,225000], backgroundColor: 'rgba(124,58,237,0.8)' },
+      { label: 'Central', data: [98000, 115000,130000,175000], backgroundColor: 'rgba(16,185,129,0.8)' },
+      { label: 'South',   data: [60000, 73000, 82000, 108000], backgroundColor: 'rgba(245,158,11,0.8)' }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { labels: { color: '#94a3b8', boxWidth: 12, padding: 12, font: { size: 11 } } },
+      tooltip: {
+        backgroundColor: '#1a2235',
+        borderColor: '#1e2d45',
+        borderWidth: 1,
+        callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}` }
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#64748b' } },
+      y: {
+        grid: { color: 'rgba(30,45,69,0.6)' },
+        ticks: { color: '#64748b', callback: v => '$' + (v/1000).toFixed(0) + 'k' }
+      }
+    }
+  }
+});
+
+// ─── HORIZONTAL BAR ─────────────────────────────────
+const subCats  = ['Copiers','Phones','Accessories','Paper','Binders','Chairs','Bookcases','Art','Envelopes','Tables'];
+const margins  = [17.2, 14.8, 13.1, 12.9, 11.4, 9.2, 7.6, 6.3, 5.8, -8.0];
+const barColors = margins.map(v => v < 0 ? 'rgba(239,68,68,0.8)' : 'rgba(0,212,255,0.75)');
+
+new Chart(document.getElementById('hBarChart'), {
+  type: 'bar',
+  data: {
+    labels: subCats,
+    datasets: [{
+      label: 'Profit Margin %',
+      data: margins,
+      backgroundColor: barColors,
+      borderRadius: 4,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1a2235',
+        borderColor: '#1e2d45',
+        borderWidth: 1,
+        callbacks: { label: ctx => ` Margin: ${ctx.parsed.x}%` }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(30,45,69,0.6)' },
+        ticks: { color: '#64748b', callback: v => v + '%' }
+      },
+      y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11 } } }
+    }
+  }
+});
+</script>
+</body>
+</html>
